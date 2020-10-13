@@ -7,10 +7,11 @@
 
 
 
+#include <led.hpp>
 #include <main.h>
-#include <led.h>
+#include <memory.h>
 
-static void newLEDInit(void);
+static void newLEDInit(uint8_t newLedIndex);
 
 static uint8_t ledIndex = 0;
 static bool initialized = false;
@@ -56,7 +57,9 @@ bool createLED(RGBLed newLED)
 {
 	if (ledIndex < 5)
 	{
-		LEDControlArray[ledIndex++] = newLED;
+		//LEDControlArray[ledIndex++] = newLED;
+		memcpy((void*)&LEDControlArray[ledIndex], &newLED, sizeof(RGBLed));
+		ledIndex++;
 		if (initialized == true)
 		{
 			newLEDInit(ledIndex-1);
@@ -84,6 +87,9 @@ bool changeBrightness(uint8_t led, uint8_t brightness)
 	{
 		return false;
 	}
+
+	LEDControlArray[led].brightness = brightness;
+	return true;
 }
 
 /**
@@ -97,7 +103,14 @@ bool changeBrightness(uint8_t led, uint8_t brightness)
  */
 bool changeState(uint8_t led, RGBLedState state)
 {
-	break;
+	//TODO: there has to be a better way to check valid enumeration, I know you can in C# investigate c++/c
+	if (led >4 || (uint8_t)state > 0x03)
+	{
+		return false;
+	}
+
+	LEDControlArray[led].state = state;
+	return true;
 }
 
 /**
@@ -109,7 +122,7 @@ bool changeState(uint8_t led, RGBLedState state)
  */
 static void newLEDInit(uint8_t newLedIndex)
 {
-	RGBLed *temp = &LEDControlArray[newLedIndex];
+	RGBLed *temp = (RGBLed *)&LEDControlArray[newLedIndex];
 	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
@@ -118,13 +131,13 @@ static void newLEDInit(uint8_t newLedIndex)
 	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 
 	GPIO_InitStruct.Pin = temp->BluePin;
-	LL_GPIO_Init(temp->BluePort, &GPIO_InitStruct);
+	LL_GPIO_Init(&(temp->BluePort), &GPIO_InitStruct);
 
 	GPIO_InitStruct.Pin = temp->GreenPin;
-	LL_GPIO_Init(temp->GreenPort, &GPIO_InitStruct);
+	LL_GPIO_Init(&temp->GreenPort, &GPIO_InitStruct);
 
 	GPIO_InitStruct.Pin = temp->RedPin;
-	LL_GPIO_Init(temp->RedPort, &GPIO_InitStruct);
+	LL_GPIO_Init(&temp->RedPort, &GPIO_InitStruct);
 
 	//TODO: Decide if we want a base state or brightness defined here
 	//TODO: Can we fail to initialize GPIO? We need to manage any failures if so

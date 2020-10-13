@@ -18,8 +18,8 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include <led.hpp>
 #include "tim.h"
-#include "led.h"
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -31,6 +31,10 @@ void MX_TIM14_Init(void)
 
   /* Peripheral clock enable */
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM14);
+
+  /* TIM14 interrupt Init */
+  NVIC_SetPriority(TIM14_IRQn, 0);
+  NVIC_EnableIRQ(TIM14_IRQn);
 
   TIM_InitStruct.Prescaler = 0;
   TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;

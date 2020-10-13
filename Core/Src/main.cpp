@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include <led.hpp>
 #include "main.h"
 #include "tim.h"
 #include "gpio.h"
