@@ -139,6 +139,7 @@ static void newLEDInit(uint8_t newLedIndex)
 	GPIO_InitStruct.Pin = temp->RedPin;
 	LL_GPIO_Init(&temp->RedPort, &GPIO_InitStruct);
 
+	timerLEDCount++;
 	//TODO: Decide if we want a base state or brightness defined here
 	//TODO: Can we fail to initialize GPIO? We need to manage any failures if so
 }
