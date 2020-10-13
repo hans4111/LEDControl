@@ -25,6 +25,7 @@
 /* USER CODE END 0 */
 
 /* TIM14 init function */
+///TODO: This timer may need to be faster to fool the eye. We could also use a pwm peripheral, but this seemed the most portable
 void MX_TIM14_Init(void)
 {
   LL_TIM_InitTypeDef TIM_InitStruct = {0};
@@ -36,9 +37,10 @@ void MX_TIM14_Init(void)
   NVIC_SetPriority(TIM14_IRQn, 0);
   NVIC_EnableIRQ(TIM14_IRQn);
 
-  TIM_InitStruct.Prescaler = 0;
+  TIM_InitStruct.Prescaler = __LL_TIM_CALC_PSC(SystemCoreClock, 10000);
   TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-  TIM_InitStruct.Autoreload = 0;
+  uint32_t TimOutClock = SystemCoreClock /1;
+  TIM_InitStruct.Autoreload = __LL_TIM_CALC_ARR(TimOutClock, TIM_InitStruct.Prescaler, 1000);
   TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
   LL_TIM_Init(TIM14, &TIM_InitStruct);
   LL_TIM_DisableARRPreload(TIM14);

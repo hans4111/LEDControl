@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f0xx_it.h"
+#include "led.hpp"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -142,14 +143,84 @@ void SysTick_Handler(void)
 /**
   * @brief This function handles TIM14 global interrupt.
   */
+///TODO: change max to 255 to allow for RGB mixing for full color scale
+static const uint8_t max=100;
+static uint8_t count = 0;
 void TIM14_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM14_IRQn 0 */
 
-  /* USER CODE END TIM14_IRQn 0 */
-  /* USER CODE BEGIN TIM14_IRQn 1 */
+	if (LL_TIM_IsActiveFlag_UPDATE (TIM14) == 1)
+	{
+		LL_TIM_ClearFlag_UPDATE (TIM14);
+	}
+	//Timer goes off at a rate of 1kHz we will increment a count from 0-100 for brightness, when we hit the brightness value change led to 0
+	//when the counter rolls over turn led on. Use for loop to go through all the LEDs in the led array each timer
 
-  /* USER CODE END TIM14_IRQn 1 */
+	if (count++ > max)
+	{
+		count = 0;
+	}
+	for (int i=0; i < timerLEDCount; i++)
+	{
+		switch (LEDControlArray[i].state)
+		{
+			case RGBLedState::Off:
+				LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].BluePort,LEDControlArray[i].BluePin);
+				LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].GreenPort,LEDControlArray[i].GreenPin);
+				LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].RedPort,LEDControlArray[i].RedPin);
+				break;
+			case RGBLedState::Green:
+				if (count > LEDControlArray[i].brightness)
+				{
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].GreenPort,LEDControlArray[i].GreenPin);
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].RedPort,LEDControlArray[i].RedPin);
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].BluePort,LEDControlArray[i].BluePin);
+					break;
+				}
+				else
+				{
+					LL_GPIO_SetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].GreenPort,LEDControlArray[i].GreenPin);
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].RedPort,LEDControlArray[i].RedPin);
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].BluePort,LEDControlArray[i].BluePin);
+					break;
+				}
+			case RGBLedState::Red:
+				if (count > LEDControlArray[i].brightness)
+				{
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].GreenPort,LEDControlArray[i].GreenPin);
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].RedPort,LEDControlArray[i].RedPin);
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].BluePort,LEDControlArray[i].BluePin);
+					break;
+				}
+				else
+				{
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].GreenPort,LEDControlArray[i].GreenPin);
+					LL_GPIO_SetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].RedPort,LEDControlArray[i].RedPin);
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].BluePort,LEDControlArray[i].BluePin);
+					break;
+				}
+			case RGBLedState::Blue:
+				if (count > LEDControlArray[i].brightness)
+				{
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].GreenPort,LEDControlArray[i].GreenPin);
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].RedPort,LEDControlArray[i].RedPin);
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].BluePort,LEDControlArray[i].BluePin);
+					break;
+				}
+				else
+				{
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].GreenPort,LEDControlArray[i].GreenPin);
+					LL_GPIO_ResetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].RedPort,LEDControlArray[i].RedPin);
+					LL_GPIO_SetOutputPin((GPIO_TypeDef*)&LEDControlArray[i].BluePort,LEDControlArray[i].BluePin);
+					break;
+				}
+			default:
+				//We shouldn't ever make it to this case
+				///TODO:Write Error Code
+				break;
+
+		}
+	}
 }
 
 /* USER CODE BEGIN 1 */
